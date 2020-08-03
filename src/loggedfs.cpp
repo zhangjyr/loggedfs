@@ -752,6 +752,7 @@ static bool processArgs(int argc, char *argv[], LoggedFS_Args *out)
     opterr = 0;
 
     int res;
+    int option_index = 0;
 
     bool got_p = false;
 
@@ -764,8 +765,12 @@ static bool processArgs(int argc, char *argv[], LoggedFS_Args *out)
     // files are verified by their inode equivalency.
 
 #define COMMON_OPTS "nonempty,use_ino,attr_timeout=0,entry_timeout=0,negative_timeout=0"
+#define OPT_LOGGER 1
 
-    while ((res = getopt(argc, argv, "hpfec:l:")) != -1)
+    static struct option long_options[] = {
+        {"logger", required_argument, 0, OPT_LOGGER},
+        {0, 0, 0, 0}};
+    while ((res = getopt_long(argc, argv, "hpfec:l:", long_options, &option_index)) != -1)
     {
         switch (res)
         {
@@ -802,6 +807,15 @@ static bool processArgs(int argc, char *argv[], LoggedFS_Args *out)
             defaultConf.setGlobally(el::ConfigurationType::ToStandardOutput, std::string("false"));
             defaultConf.setGlobally(el::ConfigurationType::Filename, std::string(optarg));
             el::Loggers::reconfigureLogger("default", defaultConf);
+            defaultLogger = el::Loggers::getLogger("default");
+            break;
+        }
+        case OPT_LOGGER:
+        {
+            defaultLogger->info("LoggedFS log with configuration file : %v", optarg);
+            const std::string loggerPath = std::string(optarg);
+            el::Configurations loggerConf(loggerPath);
+            el::Loggers::reconfigureLogger("default", loggerConf);
             defaultLogger = el::Loggers::getLogger("default");
             break;
         }
@@ -909,7 +923,7 @@ int main(int argc, char *argv[])
     if (processArgs(argc, argv, loggedfsArgs))
     {
 
-        if (loggedfsArgs->isDaemon)
+        if (!loggedfsArgs->isDaemon)
         {
             dispatchAction = el::base::DispatchAction::SysLog;
             loggerId = "syslog";

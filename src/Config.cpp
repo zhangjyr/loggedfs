@@ -179,24 +179,24 @@ bool Config::shouldLog(const char* filename, int uid, const char* action, const 
     if (enabled)
     {
     	if (includes.size()>0)
-	{
-		for (unsigned int i=0;i<includes.size() && !should;i++)
 		{
-		Filter f=includes[i];
-		if (f.matches(filename,uid,action,retname))
+			for (unsigned int i=0;i<includes.size() && !should;i++)
+			{
+				Filter f=includes[i];
+				if (f.matches(filename,uid,action,retname))
+					should=true;
+			}
+			for (unsigned int i=0;i<excludes.size() && should;i++)
+			{
+				Filter f=excludes[i];
+				if (f.matches(filename,uid,action,retname))
+					should=false;
+			}
+		}
+		else
+		{
 			should=true;
 		}
-		for (unsigned int i=0;i<excludes.size() && should;i++)
-		{
-		Filter f=excludes[i];
-		if (f.matches(filename,uid,action,retname))
-			should=false;
-		}
-	}
-	else
-	{
-		should=true;
-	}
 
     }
     
