@@ -1,12 +1,12 @@
-.TH LoggedFS 1 "JANUARY 2007" "User Manuals"
+.TH LoggedFS 1 "August 2020" "User Manuals"
 .SH NAME
 LoggedFS \- Filesystem monitoring with Fuse
 .SH SYNOPSIS
-.B loggedfs [-fp] [-c
+.B loggedfs [-fpv] [-c
 .I config-file
 .B ] [-l
 .I log-file
-.B ]
+.B ] [--logger=log-config-file]
 .I directory
 .B ...
 .SH DESCRIPTION
@@ -23,8 +23,14 @@ to filter what you want to log.
 Use the
 .I log-file
 to write logs to. If no log file is specified then logs are only written to syslog or to stdout, depending on -f.
+.IP "--logger=log-config-file"
+Use the configuration specified in the
+.I log-config-file
+to write logs.
 .IP -p
 Allow every users to see the new loggedfs. 
+.IP -v
+Output verbose log. By default, log is in the csv format for analytics purpose.
 .SH FILES
 .I /etc/fuse.conf
 .RS
