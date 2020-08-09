@@ -68,8 +68,9 @@ INITIALIZE_EASYLOGGINGPP
 #define DEFAULT_LOGGER_ID "default"
 #define SYS_LOGGER_ID "syslog"
 
-#define DEFAULT_LOG_FORMAT ",%s,%d,%s"
-#define LOG_FORMAT(MORE) ",%s,%d,%s," MORE
+#define LOG_BUF_SIZE 512
+#define DEFAULT_LOG_FORMAT "%s,%d,%s"
+#define LOG_FORMAT(MORE) "%s,%d,%s," MORE
 #define DEFAULT_VERBOSE_FORMAT "%s(%d) %s"
 #define VERBOSE_FORMAT(MORE) DEFAULT_VERBOSE_FORMAT " " MORE
 
@@ -160,59 +161,44 @@ static void loggedfs_log(struct timeval *stime, struct timeval *etime, const cha
 
     if (config.shouldLog(path, fuse_get_context()->uid, action, retname))
     {
-        char *buf = NULL;
-        char *additionalBuf = NULL;
-        const char *additionalInfo = "";
-        char *caller_name = NULL;
+        char buf[LOG_BUF_SIZE];
 
-        if (loggedfsArgs->verbose)
-        {
-            caller_name = getcallername();
-            asprintf(&additionalBuf, additionalInfoFormat, retname, fuse_get_context()->pid, config.isPrintProcessNameEnabled() ? caller_name : "", fuse_get_context()->uid);
-            additionalInfo = (const char*)additionalBuf;
-        }
-    
         if (loggedfsArgs->verbose)
         {
             if (format == NULL)
             {
-                asprintf(&buf, DEFAULT_VERBOSE_FORMAT, action, returncode, path);
+                sprintf(buf, DEFAULT_VERBOSE_FORMAT, action, returncode, path);
             }
             else 
             {
-                vasprintf(&buf, verboseFormat, args);
+                vsprintf(buf, verboseFormat, args);
             }
+
+            char *caller_name = getcallername();
+            sprintf(&buf[strlen(buf)], additionalInfoFormat, retname, fuse_get_context()->pid, config.isPrintProcessNameEnabled() ? caller_name : "", fuse_get_context()->uid);
+            free(caller_name);
         }
         else
         {
-            asprintf(&buf, "%ld%.6ld,%ld%.6ld,", stime->tv_sec, stime->tv_usec, etime->tv_sec, etime->tv_usec);
+            sprintf(buf, "%ld%.6ld,%ld%.6ld,", stime->tv_sec, stime->tv_usec, etime->tv_sec, etime->tv_usec);
             if (verboseFormat == NULL)
             {
-                sprintf(&buf[strlen(buf) - 1], DEFAULT_LOG_FORMAT, action, returncode, path);
+                sprintf(&buf[strlen(buf)], DEFAULT_LOG_FORMAT, action, returncode, path);
             }
             else
             {
-                vsprintf(&buf[strlen(buf) - 1], format, args);
+                vsprintf(&buf[strlen(buf)], format, args);
             }
         }
         
-
         if (returncode >= 0)
         {
-            ELPP_WRITE_LOG(el::base::Writer, el::Level::Info, dispatchAction, "default") << buf << additionalInfo;
+            ELPP_WRITE_LOG(el::base::Writer, el::Level::Info, dispatchAction, "default") << buf;
         }
         else
         {
-            ELPP_WRITE_LOG(el::base::Writer, el::Level::Error, dispatchAction, "default") << buf << additionalInfo;
+            ELPP_WRITE_LOG(el::base::Writer, el::Level::Error, dispatchAction, "default") << buf;
         }
-
-        free(buf);
-        additionalInfo = NULL;
-        if (additionalBuf != NULL)
-        {
-            free(additionalBuf);
-            free(caller_name);
-        }  
     }
 }
 
