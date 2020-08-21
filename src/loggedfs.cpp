@@ -566,7 +566,7 @@ static int loggedFS_truncate(const char *orig_path, off_t size)
     char *aPath = getAbsolutePath(orig_path);
     char *path = getRelativePath(orig_path);
     res = truncate(path, size);
-    loggedfs_log(aPath, "truncate", res, LOG_FORMAT("%l"), VERBOSE_FORMAT("to %l bytes"), "truncate", res, aPath, size);
+    loggedfs_log(aPath, "truncate", res, LOG_FORMAT("%ld"), VERBOSE_FORMAT("to %ld bytes"), "truncate", res, aPath, size);
     delete[] aPath;
     free(path);
 
@@ -670,7 +670,7 @@ static int loggedFS_read(const char *orig_path, char *buf, size_t size, off_t of
     {
         res = 0;
     }
-    loggedfs_log(&stime, &etime, aPath, "read", res, LOG_FORMAT("%l,%i"), "%s(%d) from %s at offset %l, %i bytes.", "read", res, aPath, offset, size);
+    loggedfs_log(&stime, &etime, aPath, "read", res, LOG_FORMAT("%ld,%i"), "%s(%d) from %s at offset %ld, %i bytes.", "read", res, aPath, offset, size);
     delete[] aPath;
     return read;
 }
@@ -713,7 +713,7 @@ static int loggedFS_write(const char *orig_path, const char *buf, size_t size,
     {
         res = 0;
     }
-    loggedfs_log(&stime, &etime, aPath, "write", res, LOG_FORMAT("%l,%i"), "%s(%d) to %s at offset %l, %i bytes.", "write", res, aPath, offset, size);
+    loggedfs_log(&stime, &etime, aPath, "write", res, LOG_FORMAT("%ld,%i"), "%s(%d) to %s at offset %ld, %i bytes.", "write", res, aPath, offset, size);
 
     // close(fd);
     delete[] aPath;
