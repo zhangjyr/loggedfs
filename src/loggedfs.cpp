@@ -566,7 +566,7 @@ static int loggedFS_truncate(const char *orig_path, off_t size)
     char *aPath = getAbsolutePath(orig_path);
     char *path = getRelativePath(orig_path);
     res = truncate(path, size);
-    loggedfs_log(aPath, "truncate", res, LOG_FORMAT("%d"), VERBOSE_FORMAT("to %d bytes"), "truncate", res, aPath, size);
+    loggedfs_log(aPath, "truncate", res, LOG_FORMAT("%l"), VERBOSE_FORMAT("to %l bytes"), "truncate", res, aPath, size);
     delete[] aPath;
     free(path);
 
@@ -626,19 +626,19 @@ static int loggedFS_open(const char *orig_path, struct fuse_file_info *fi)
     // what type of open ? read, write, or read-write ?
     if (fi->flags & O_RDONLY)
     {
-        loggedfs_log(aPath, "open-readonly", res, LOG_FORMAT("%s"), VERBOSE_FORMAT("%s"), "open", res, aPath, "ro");
+        loggedfs_log(aPath, "open-readonly", res, LOG_FORMAT("%s,%d"), VERBOSE_FORMAT("%s(flags:%d)"), "open", res, aPath, "ro", fi->flags);
     }
     else if (fi->flags & O_WRONLY)
     {
-        loggedfs_log(aPath, "open-writeonly", res, LOG_FORMAT("%s"), VERBOSE_FORMAT("%s"), "open", res, aPath, "wo");
+        loggedfs_log(aPath, "open-writeonly", res, LOG_FORMAT("%s,%d"), VERBOSE_FORMAT("%s(flags:%d)"), "open", res, aPath, "wo", fi->flags);
     }
     else if (fi->flags & O_RDWR)
     {
-        loggedfs_log(aPath, "open-readwrite", res, LOG_FORMAT("%s"), VERBOSE_FORMAT("%s"), "open", res, aPath, "rw");
+        loggedfs_log(aPath, "open-readwrite", res, LOG_FORMAT("%s,%d"), VERBOSE_FORMAT("%s(flags:%d)"), "open", res, aPath, "rw", fi->flags);
     }
     else
     {
-        loggedfs_log(aPath, "open", res);
+        loggedfs_log(aPath, "open", res, LOG_FORMAT(",%d"), VERBOSE_FORMAT("(flags:%d)"), "open", res, aPath, fi->flags);
     }
 
     delete[] aPath;
@@ -670,7 +670,7 @@ static int loggedFS_read(const char *orig_path, char *buf, size_t size, off_t of
     {
         res = 0;
     }
-    loggedfs_log(&stime, &etime, aPath, "read", res, LOG_FORMAT("%d,%d"), "%s(%d) from %s at offset %d, %d bytes.", "read", res, aPath, offset, size);
+    loggedfs_log(&stime, &etime, aPath, "read", res, LOG_FORMAT("%l,%i"), "%s(%d) from %s at offset %l, %i bytes.", "read", res, aPath, offset, size);
     delete[] aPath;
     return read;
 }
@@ -691,14 +691,14 @@ static int loggedFS_write(const char *orig_path, const char *buf, size_t size,
     // {
     //     res = -errno;
         
-    //     // loggedfs_log(aPath, "write", -1, "write %d bytes to %s at offset %d", size, aPath, offset);
+    //     // loggedfs_log(aPath, "write", -1, "write %i bytes to %s at offset %l", size, aPath, offset);
     //     delete[] aPath;
     //     free(path);
     //     return res;
     // }
     // else
     // {
-    //     // loggedfs_log(aPath, "write", 0, "write %d bytes to %s at offset %d", size, aPath, offset);
+    //     // loggedfs_log(aPath, "write", 0, "write %i bytes to %s at offset %l", size, aPath, offset);
     // }
 
     // res = pwrite(fd, buf, size, offset);
@@ -713,7 +713,7 @@ static int loggedFS_write(const char *orig_path, const char *buf, size_t size,
     {
         res = 0;
     }
-    loggedfs_log(&stime, &etime, aPath, "write", res, LOG_FORMAT("%d,%d"), "%s(%d) to %s at offset %d, %d bytes.", "write", res, aPath, offset, size);
+    loggedfs_log(&stime, &etime, aPath, "write", res, LOG_FORMAT("%l,%i"), "%s(%d) to %s at offset %l, %i bytes.", "write", res, aPath, offset, size);
 
     // close(fd);
     delete[] aPath;
